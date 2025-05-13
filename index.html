@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Blockchain Visualizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <h1>Blockchain Visualizer</h1>
+
+    <form id="blockForm">
+        <input type="text" id="data" placeholder="Enter block data" required>
+        <button type="submit">Add Block</button>
+    </form>
+
+    <div id="blockchain"></div>
+
+    <script>
+        async function loadChain() {
+            const res = await fetch('/chain');
+            const chain = await res.json();
+            const container = document.getElementById('blockchain');
+            container.innerHTML = '';
+            chain.forEach(block => {
+                const blockDiv = document.createElement('div');
+                blockDiv.className = 'block';
+                blockDiv.innerHTML = `
+                    <strong>Index:</strong> ${block.index}<br>
+                    <strong>Data:</strong> ${block.data}<br>
+                    <strong>Hash:</strong> ${block.hash}<br>
+                    <strong>Prev Hash:</strong> ${block.previous_hash}<br>
+                    <strong>Time:</strong> ${new Date(block.timestamp).toLocaleString()}<br>
+                `;
+                container.appendChild(blockDiv);
+            });
+        }
+
+        document.getElementById('blockForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = document.getElementById('data').value;
+            await fetch('/add_block', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data })
+            });
+            document.getElementById('data').value = '';
+            loadChain();
+        });
+
+        loadChain();
+    </script>
+</body>
+
+</html>
